@@ -1,7 +1,7 @@
 /**
  * @file
  * @source ./src/pack.c
- * @description Pack directories into a tar.gz archive
+ * @description Pack directories into a tar.gz archive with progress
  */
 
 #define _GNU_SOURCE
@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "pack.h"
+#include "colors.h"
 
 #define TEMP_DIR_template "/tmp/life-saver-XXXXXX"
 #define CMD_SIZE 1024
@@ -160,7 +161,56 @@ static int copy_recursive(const char *src, const char *dst)
 }
 
 /**
- * @brief Pack directories into a tar.gz archive
+ * @brief Count total files in a directory recursively
+ * @param dir Directory path to count files in
+ * @return Number of files found, or -1 on error
+ */
+static int count_files(const char *dir)
+{
+	char cmd[CMD_SIZE];
+	snprintf(cmd, sizeof(cmd), "find %s -type f | wc -l", dir);
+
+	FILE *fp = popen(cmd, "r");
+	if (!fp)
+		return (-1);
+
+	int count = 0;
+	if (fscanf(fp, "%d", &count) != 1)
+		count = -1;
+
+	pclose(fp);
+	return (count);
+}
+
+/**
+ * @brief Show progress bar on terminal
+ * @param current Current file count
+ * @param total Total file count
+ * @return void
+ */
+static void show_progress(int current, int total)
+{
+	if (total <= 0)
+		return;
+
+	int percent = (current * 100) / total;
+	int bar_width = 30;
+	int filled = (percent * bar_width) / 100;
+
+	printf("\r" OK_PREFIX "Packing: [");
+	for (int i = 0; i < bar_width; i++)
+	{
+		if (i < filled)
+			printf("=");
+		else
+			printf("-");
+	}
+	printf("] %d%% (%d/%d)", percent, current, total);
+	fflush(stdout);
+}
+
+/**
+ * @brief Pack directories into a tar.gz archive with progress
  * @param paths Array of directory paths to pack
  * @param path_count Number of paths
  * @param output Output tar.gz filename
@@ -193,11 +243,39 @@ PackResult life_saver__pack(
 		}
 	}
 
-	/* Create tar.gz using bash */
-	char cmd[CMD_SIZE];
-	snprintf(cmd, sizeof(cmd), "tar czf %s -C %s .", output, temp_dir);
+	/* Count files for progress */
+	int total_files = count_files(temp_dir);
+	printf(OK_PREFIX "Counted %d files to pack\n", total_files);
 
-	int status = system(cmd);
+	/* Create tar.gz with verbose output for progress tracking */
+	char cmd[CMD_SIZE];
+	snprintf(cmd, sizeof(cmd), "tar czf %s -C %s --verbose . 2>&1", output, temp_dir);
+
+	FILE *fp = popen(cmd, "r");
+	if (!fp)
+	{
+		char cleanup_cmd[CMD_SIZE];
+		snprintf(cleanup_cmd, sizeof(cleanup_cmd), "rm -rf %s", temp_dir);
+		system(cleanup_cmd);
+		return (make_error("failed to create tar archive"));
+	}
+
+	/* Read tar output and show progress */
+	char line[256];
+	int packed = 0;
+	while (fgets(line, sizeof(line), fp))
+	{
+		packed++;
+		if (total_files > 0)
+			show_progress(packed, total_files);
+	}
+
+	int status = pclose(fp);
+
+	/* Show final progress */
+	if (total_files > 0)
+		show_progress(total_files, total_files);
+	printf("\n");
 
 	/* Cleanup temp directory */
 	char cleanup_cmd[CMD_SIZE];

@@ -12,12 +12,12 @@ build:
 	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
 	@echo "Build complete: $(TARGET)"
 
-install: build
-	sudo install -d $(DESTDIR)/usr/bin
-	sudo install -m 755 $(TARGET) $(DESTDIR)/usr/bin/life-saver
+install:
+	install -d $(DESTDIR)/usr/bin
+	install -m 755 $(TARGET) $(DESTDIR)/usr/bin/life-saver
 
 uninstall:
-	sudo rm -f $(DESTDIR)/usr/bin/life-saver
+	rm -f $(DESTDIR)/usr/bin/life-saver
 
 test:
 	docker build -t life-saver-test -f docker/Dockerfile.test .
