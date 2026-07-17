@@ -1,0 +1,10 @@
+bin/
+*.o
+*.tar.gz
+life-saver_*
+compile_commands.json
+debian/*.debhelper
+debian/*.debhelper.log
+debian/files
+debian/life-saver/
+debian/.debhelper

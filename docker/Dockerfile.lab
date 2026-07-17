@@ -1,0 +1,21 @@
+FROM debian:12
+
+WORKDIR /app
+
+COPY debian/life-saver_*.deb /tmp/
+
+RUN dpkg -i /tmp/life-saver_*.deb || apt-get update && apt-get install -f -y
+
+# Test fixtures
+RUN mkdir -p fixtures/web-app/.git && \
+    echo "main module" > fixtures/web-app/main.js && \
+    echo "styles" > fixtures/web-app/style.css && \
+    mkdir -p fixtures/api-server/.git && \
+    echo "server entry" > fixtures/api-server/index.js && \
+    mkdir -p fixtures/raw-config && \
+    echo "nginx config" > fixtures/raw-config/nginx.conf && \
+    echo "docker compose" > fixtures/raw-config/docker-compose.yml && \
+    mkdir -p fixtures/deep/project/.git && \
+    echo "deep module" > fixtures/deep/project/module.go
+
+CMD ["bash"]

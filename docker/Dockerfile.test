@@ -1,0 +1,28 @@
+FROM debian:12
+
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY include/ include/
+COPY src/ src/
+COPY test/ test/
+
+# Create test fixtures
+RUN mkdir -p fixtures/repo1/.git && \
+    echo "repo1" > fixtures/repo1/file1.txt && \
+    echo "repo1" > fixtures/repo1/file2.txt && \
+    mkdir -p fixtures/repo2/.git && \
+    echo "repo2" > fixtures/repo2/readme.md && \
+    mkdir -p fixtures/raw-dir && \
+    echo "raw content" > fixtures/raw-dir/data.txt && \
+    mkdir -p fixtures/deep/nested/.git && \
+    echo "deep" > fixtures/deep/nested/info.txt
+
+RUN gcc -Wall -Wextra -std=c11 -Iinclude -g -o test-parse-args test/test-parse-args.c src/parse-args.c
+RUN gcc -Wall -Wextra -std=c11 -Iinclude -g -o test-command_help test/test-command_help.c src/command_help.c
+RUN gcc -Wall -Wextra -std=c11 -Iinclude -g -o test-list-items test/test-list-items.c src/list-items.c
+RUN gcc -Wall -Wextra -D_GNU_SOURCE -std=c11 -Iinclude -g -o test-pack test/test-pack.c src/pack.c
+RUN gcc -Wall -Wextra -D_GNU_SOURCE -std=c11 -Iinclude -g -o test-command-saver test/test-command-saver.c src/command-saver.c src/list-items.c src/pack.c
+RUN ldd ./test-parse-args
+CMD ["sh", "-c", "./test-parse-args 2>&1; echo \"EXIT_CODE=$?\"; ./test-command_help 2>&1; echo \"EXIT_CODE=$?\"; ./test-list-items 2>&1; echo \"EXIT_CODE=$?\"; ./test-pack 2>&1; echo \"EXIT_CODE=$?\"; ./test-command-saver 2>&1; echo \"EXIT_CODE=$?\""]

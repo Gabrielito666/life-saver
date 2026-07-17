@@ -1,0 +1,15 @@
+Source: life-saver
+Section: utils
+Priority: optional
+Maintainer: Gabriel <galileo.fandango@gmail.com>
+Build-Depends: debhelper-compat (= 13), gcc
+Standards-Version: 4.6.0
+Homepage: https://github.com/Gabrielito666/life-saver
+
+Package: life-saver
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Backup tool for git repositories
+ life-saver is a CLI tool that scans directories for git
+ repositories and packages them into a single tar.gz file,
+ ideal for quick backups to physical devices or remote servers.
