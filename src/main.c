@@ -8,6 +8,7 @@
 #include "parse-args.h"
 #include "command_help.h"
 #include "command-saver.h"
+#include "colors.h"
 
 /**
  * @brief Punto de entrada
@@ -21,7 +22,7 @@ int main(int argc, char *argv[])
 
 	if (!parse_result.ok)
 	{
-		fprintf(stderr, "Error: %s\n", parse_result.error);
+		fprintf(stderr, ERR_PREFIX "%s\n", parse_result.error);
 		return 1;
 	}
 
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
 
 	if (parse_result.args.input_count == 0 && parse_result.args.raw_count == 0)
 	{
-		fprintf(stderr, "Error: at least one -i/--input or -r/--raw-input is required\n");
+		fprintf(stderr, ERR_PREFIX "at least one -i/--input or -r/--raw-input is required\n");
 		return 1;
 	}
 
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
 
 	if (!saver_result.ok)
 	{
-		fprintf(stderr, "Error: %s\n", saver_result.error);
+		fprintf(stderr, ERR_PREFIX "%s\n", saver_result.error);
 		return 1;
 	}
 

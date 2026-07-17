@@ -11,6 +11,7 @@
 #include "command-saver.h"
 #include "list-items.h"
 #include "pack.h"
+#include "colors.h"
 
 #define LIFE_SAVER__DEFAULT_OUTPUT_PREFIX "life-saver-backup-"
 #define LIFE_SAVER__OUTPUT_BUFFER_SIZE 128
@@ -70,7 +71,7 @@ SaverResult life_saver__commandSaver(LifeSaverArgs args)
 	}
 
 	/* Step 2: Print items log */
-	printf("Items found (%d):\n", items.count);
+	printf(OK_PREFIX "Items found (%d):\n", items.count);
 	for (int i = 0; i < items.count; i++)
 		printf("  [%d] %s\n", i, items.items[i]);
 
@@ -98,7 +99,7 @@ SaverResult life_saver__commandSaver(LifeSaverArgs args)
 		return (make_error(pack_result.error));
 
 	/* Step 4: Print output path */
-	printf("Output: %s\n", output);
+	printf(OK_PREFIX "Output: %s\n", output);
 
 	return ((SaverResult){.ok = 1, .error = {0}});
 }
